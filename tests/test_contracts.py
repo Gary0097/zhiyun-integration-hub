@@ -22,6 +22,7 @@ class ContractTests(unittest.TestCase):
         self.assertIn("功能说明书", ui)
         self.assertNotIn("字段映射 JSON", ui)
         self.assertNotIn("配置 JSON", ui)
+        self.assertIn("reduce(function (all, row)", ui)
         self.assertIn("/zhiyun-data-core/imports/", ui)
         self.assertIn('Q.registerRoutes("zhiyun-integration-hub"', ui)
         self.assertNotIn('document.getElementById("app")', ui)

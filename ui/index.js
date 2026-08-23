@@ -30,7 +30,7 @@
         }).then(function (context) {
           return request("/zhiyun-data-core/schemas/" + encodeURIComponent(values.entity)).then(function (schema) {
             var fields = (schema.fields || []).filter(function (field) { return field.active !== false; });
-            var headers = context.payload.headers || Object.keys((context.payload.rows || [])[0] || {}), next = {};
+            var headers = context.payload.headers || Array.from(new Set((context.payload.rows || []).reduce(function (all, row) { return all.concat(Object.keys(row || {})); }, []))), next = {};
             headers.forEach(function (header) { var key = String(header).trim().toLowerCase(); var match = fields.find(function (field) { return String(field.name).toLowerCase() === key || String(field.label || "").trim().toLowerCase() === key; }); if (match) next[header] = match.name; });
             setMapping(next); setSource({ connector: context.connector, rows: context.payload.rows || [], headers: headers, fields: fields, entity: values.entity });
             message.success("读取成功，已自动匹配 " + Object.keys(next).length + " 个字段");
