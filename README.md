@@ -2,7 +2,7 @@
 
 QwenPaw 2.1.x PawApp for controlled ERP/WMS and external-system ingestion.
 
-Version 0.1.0 supports real CSV/JSON input, HTTPS JSON APIs and read-only SQLite
+Version 0.1.1 supports real CSV/JSON input, HTTPS JSON APIs and read-only SQLite
 sources. It provides dependency health, safe field mapping, persistent Run and
 Trace evidence, retry state, and a confirmation boundary before Data Core
 commit. It never stores plaintext credentials or writes shared tables directly.
