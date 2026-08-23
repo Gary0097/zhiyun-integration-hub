@@ -24,6 +24,19 @@ class ConnectorError(ValueError):
     pass
 
 
+def _decode_csv(content: bytes) -> str:
+    """Decode common CSV exports without asking users to choose an encoding."""
+    candidates = ["utf-16"] if content.startswith((b"\xff\xfe", b"\xfe\xff")) else ["utf-8-sig", "gb18030"]
+    for encoding in candidates:
+        try:
+            text = content.decode(encoding)
+            if "\x00" not in text:
+                return text
+        except UnicodeDecodeError:
+            continue
+    raise ConnectorError("无法识别 CSV 编码；请导出为 UTF-8、GBK/GB18030 或带 BOM 的 UTF-16 CSV")
+
+
 def parse_file(filename: str, content: bytes) -> list[dict[str, Any]]:
     if not content:
         raise ConnectorError("数据文件不能为空")
@@ -31,7 +44,7 @@ def parse_file(filename: str, content: bytes) -> list[dict[str, Any]]:
         raise ConnectorError("数据文件不能超过20MB")
     suffix = Path(filename).suffix.lower()
     if suffix == ".csv":
-        rows = list(csv.DictReader(io.StringIO(content.decode("utf-8-sig"))))
+        rows = list(csv.DictReader(io.StringIO(_decode_csv(content))))
     elif suffix == ".json":
         value = json.loads(content.decode("utf-8"))
         rows = value if isinstance(value, list) else value.get("records") if isinstance(value, dict) else None

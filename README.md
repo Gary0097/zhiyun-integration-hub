@@ -2,7 +2,7 @@
 
 QwenPaw 2.1.x PawApp for controlled ERP/WMS and external-system ingestion.
 
-Version 0.2.0 provides a Chinese guided workflow for real CSV/JSON uploads,
+Version 0.2.1 provides a Chinese guided workflow for real CSV/JSON uploads,
 HTTPS JSON APIs and read-only SQLite. Users no longer write connector or field
 mapping JSON: the page renders source-specific fields and automatically matches
 source headers to the Data Core schema before review.
