@@ -1,8 +1,11 @@
-# Zhiyun Integration Hub
+# 智造云系统集成中心
 
 QwenPaw 2.1.x PawApp for controlled ERP/WMS and external-system ingestion.
 
-Version 0.1.1 supports real CSV/JSON input, HTTPS JSON APIs and read-only SQLite
+Version 0.2.0 provides a Chinese guided workflow for real CSV/JSON uploads,
+HTTPS JSON APIs and read-only SQLite. Users no longer write connector or field
+mapping JSON: the page renders source-specific fields and automatically matches
+source headers to the Data Core schema before review.
 sources. It provides dependency health, safe field mapping, persistent Run and
 Trace evidence, retry state, and a confirmation boundary before Data Core
 commit. It never stores plaintext credentials or writes shared tables directly.
