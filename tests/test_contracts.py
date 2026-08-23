@@ -23,6 +23,8 @@ class ContractTests(unittest.TestCase):
         self.assertNotIn("字段映射 JSON", ui)
         self.assertNotIn("配置 JSON", ui)
         self.assertIn("reduce(function (all, row)", ui)
+        self.assertIn("onValuesChange", ui)
+        self.assertNotIn("sqlite_limit", ui)
         self.assertIn("/zhiyun-data-core/imports/", ui)
         self.assertIn('Q.registerRoutes("zhiyun-integration-hub"', ui)
         self.assertNotIn('document.getElementById("app")', ui)

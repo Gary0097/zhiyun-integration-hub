@@ -7,6 +7,9 @@ root = Path(__file__).resolve().parents[1]
 manifest = json.loads((root / "plugin.json").read_text(encoding="utf-8"))
 assert manifest["id"] == "zhiyun-integration-hub"
 assert manifest["qwenpaw_version"] == {"min": "2.1.0", "max": "2.2.0"}
+syntax = subprocess.run(["node", "--check", str(root / "ui" / "index.js")], cwd=root)
+if syntax.returncode:
+    raise SystemExit(syntax.returncode)
 result = subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"], cwd=root)
 if result.returncode:
     raise SystemExit(result.returncode)
