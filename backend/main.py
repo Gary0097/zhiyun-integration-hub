@@ -19,7 +19,7 @@ except ImportError:
     from connector_engine import ConnectorError, dependency_health, fetch_https_json, map_rows, parse_file, read_sqlite
     from sync_store import SyncStore
 
-PLUGIN_VERSION = "0.1.0"
+PLUGIN_VERSION = "0.1.1"
 router = APIRouter()
 
 

@@ -15,9 +15,12 @@ class ContractTests(unittest.TestCase):
         self.assertIn('@router.post("/sync/preview")', source)
         self.assertIn('@router.post("/sources/read")', source)
         self.assertIn("requires_user_confirmation", source)
-        self.assertIn("依赖健康检查失败", ui)
+        self.assertIn("正在检查依赖", ui)
+        self.assertIn('status: "degraded"', ui)
         self.assertIn("确认写入 Data Core", ui)
-        self.assertIn("/api/zhiyun-data-core/imports/", ui)
+        self.assertIn("/zhiyun-data-core/imports/", ui)
+        self.assertIn('Q.registerRoutes("zhiyun-integration-hub"', ui)
+        self.assertNotIn('document.getElementById("app")', ui)
 
 
 if __name__ == "__main__":
