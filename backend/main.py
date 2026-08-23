@@ -19,7 +19,7 @@ except ImportError:
     from connector_engine import ConnectorError, dependency_health, fetch_https_json, map_rows, parse_file, read_sqlite
     from sync_store import SyncStore
 
-PLUGIN_VERSION = "0.1.1"
+PLUGIN_VERSION = "0.2.0"
 router = APIRouter()
 
 
@@ -133,7 +133,7 @@ async def retry(run_id: str) -> dict[str, Any]:
 def inspect_integration_mapping(rows: list[dict[str, Any]], mapping: dict[str, str]) -> dict[str, Any]:
     mapped = map_rows(rows, mapping)
     return {"count": len(mapped), "fields": list(mapping.values()), "preview": mapped[:20],
-            "requires_user_confirmation": True, "next": "在 Integration Hub 审阅后提交到 Data Core"}
+            "requires_user_confirmation": True, "next": "在系统集成中心审阅后提交到统一数据中心"}
 
 
 class IntegrationHubPlugin:
