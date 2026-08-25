@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, AsyncGenerator
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
@@ -21,6 +21,10 @@ except ImportError:
 
 PLUGIN_VERSION = "0.2.1"
 router = APIRouter()
+import httpx
+import json
+from uuid import uuid4
+from fastapi.responses import StreamingResponse
 
 
 def _store() -> SyncStore:
@@ -134,6 +138,108 @@ def inspect_integration_mapping(rows: list[dict[str, Any]], mapping: dict[str, s
     mapped = map_rows(rows, mapping)
     return {"count": len(mapped), "fields": list(mapping.values()), "preview": mapped[:20],
             "requires_user_confirmation": True, "next": "在系统集成中心审阅后提交到统一数据中心"}
+
+# ==== 默认智能体接入（AgentDock / Skill 问数） ====
+CONSOLE_CHAT_URL = "http://127.0.0.1:8088/api/console/chat"
+CHAT_TIMEOUT_SECONDS = 300
+DEFAULT_AGENT_ID = "business_analyst"
+
+APP_CONTEXT = (
+"你是「智云 AI OS」集成中心的智能体助手。你可以调用 `inspect_integration_mapping` 工具，基于真实的连接器映射与同步记录回答字段映射、数据预览和集成同步问题。当用户询问集成映射、连接器或同步时，请先调用对应工具再给出结论；不要凭空编造数据。"
+)
+
+
+class AgentChatRequest(BaseModel):
+    """Client payload for the streaming in-app agent chat."""
+
+    text: str = Field(min_length=1, max_length=4000, description="User message")
+    session_id: str | None = Field(default=None, description="Persistent conversation id")
+    user_id: str | None = Field(default="default", description="Calling user id")
+    app_id: str | None = Field(default="zhiyun-integration-hub")
+    context: str | None = Field(default=None, description="Optional system context")
+    history: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Prior turns [{role, text}] for multi-turn context",
+    )
+
+
+def _build_input(body: AgentChatRequest) -> list[dict[str, Any]]:
+    """Build the console ``input`` message list from the dock payload."""
+    context = body.context or APP_CONTEXT
+    input_messages: list[dict[str, Any]] = []
+    if context:
+        input_messages.append(
+            {"role": "system", "content": [{"type": "text", "text": context}]}
+        )
+    for turn in body.history:
+        if not isinstance(turn, dict):
+            continue
+        role = turn.get("role")
+        text = turn.get("text")
+        if not isinstance(text, str) or not text.strip():
+            continue
+        mapped_role = "assistant" if role in ("bot", "assistant") else "user"
+        input_messages.append(
+            {"role": mapped_role, "content": [{"type": "text", "text": text}]}
+        )
+    input_messages.append(
+        {"role": "user", "content": [{"type": "text", "text": body.text}]}
+    )
+    return input_messages
+
+
+@router.post("/agent/chat")
+async def agent_chat(body: AgentChatRequest) -> StreamingResponse:
+    """Proxy a user message to the real console chat and stream its SSE reply."""
+    session_id = body.session_id or f"zhiyun-integration-hub-{uuid4().hex}"
+    user_id = body.user_id or "default"
+
+    payload = {
+        "input": _build_input(body),
+        "session_id": session_id,
+        "user_id": user_id,
+        "stream": True,
+        "metadata": {
+            "app_id": body.app_id or "zhiyun-integration-hub",
+            "source_kind": "agent_dock",
+            "data_mode": "real",
+        },
+    }
+
+    async def event_generator() -> AsyncGenerator[str, None]:
+        try:
+            async with httpx.AsyncClient(timeout=CHAT_TIMEOUT_SECONDS) as client:
+                async with client.stream(
+                    "POST",
+                    CONSOLE_CHAT_URL,
+                    json=payload,
+                    headers={"X-Agent-Id": DEFAULT_AGENT_ID},
+                ) as response:
+                    if response.status_code != 200:
+                        err_body = await response.aread()
+                        text = err_body.decode("utf-8", errors="replace")
+                        yield f"data: {json.dumps({'error': text})}\n\n"
+                        return
+                    async for line in response.aiter_lines():
+                        if line == "":
+                            yield "\n"
+                        else:
+                            yield line + "\n"
+        except httpx.TimeoutException:
+            yield f"data: {json.dumps({'error': '智能体响应超时，请稍后重试'})}\n\n"
+        except Exception as exc:  # pragma: no cover - defensive
+            yield f"data: {json.dumps({'error': f'调用智能体失败: {exc}'})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
 
 
 class IntegrationHubPlugin:
