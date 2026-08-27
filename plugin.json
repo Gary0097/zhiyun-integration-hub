@@ -1,16 +1,33 @@
 {
   "id": "zhiyun-integration-hub",
   "name": "系统集成中心",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "app",
   "description": "受控连接文件、API 与只读数据库，完成字段映射、同步预览、Data Core 提交和错误追踪。",
   "author": "Zhiyun AI",
-  "entry": {"backend": "backend/main.py", "frontend": "ui/index.js"},
+  "entry": {
+    "backend": "backend/main.py",
+    "frontend": "ui/index.js"
+  },
   "dependencies": [],
-  "qwenpaw_version": {"min": "2.1.0", "max": "2.2.0"},
+  "qwenpaw_version": {
+    "min": "2.1.0",
+    "max": "2.2.0"
+  },
   "meta": {
-    "pawapp": {"icon": "🔌", "category": "integration", "entry_page": "/apps/zhiyun-integration-hub", "launch_scope": "page"},
-    "permissions": {"chat": true, "storage": false, "network": true},
-    "requires": ["zhiyun-data-core>=0.6.0"]
+    "pawapp": {
+      "icon": "🔌",
+      "category": "integration",
+      "entry_page": "/apps/zhiyun-integration-hub",
+      "launch_scope": "page"
+    },
+    "permissions": {
+      "chat": true,
+      "storage": false,
+      "network": true
+    },
+    "requires": [
+      "zhiyun-data-core>=0.6.0"
+    ]
   }
 }

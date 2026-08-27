@@ -2,7 +2,7 @@
   var Q = window.QwenPaw;
   if (!Q || !Q.host || !Q.host.React || !Q.registerRoutes) return;
   var React = Q.host.React, antd = Q.host.antd, h = React.createElement;
-  function request(path, options) { return Q.host.fetch(path, options).then(function (response) { return response.json().catch(function () { return {}; }).then(function (body) { if (!response.ok) throw new Error(body.detail || ("HTTP " + response.status)); return body; }); }); }
+  function request(path, options) { var opts = Object.assign({}, options || {}); try { var zt = window.localStorage.getItem("zhiyun_token"); if (zt) opts.headers = Object.assign({}, (options && options.headers) || {}, { Authorization: "Bearer " + zt }); } catch (e) {} return Q.host.fetch(path, opts).then(function (response) { return response.json().catch(function () { return {}; }).then(function (body) { if (!response.ok) throw new Error(body.detail || ("HTTP " + response.status)); return body; }); }); }
   function json(value) { return { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(value) }; }
 
   function IntegrationHub() {
